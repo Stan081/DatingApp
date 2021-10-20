@@ -1,3 +1,4 @@
+using System.Text;
 using System.Net.NetworkInformation;
 using System.Buffers;
 using System.Runtime.Serialization;
@@ -16,6 +17,12 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using API.Data;
+using API.Interfaces;
+using API.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using API.Extentions;
+using API.Extensions;
 
 namespace API
 {
@@ -31,14 +38,12 @@ namespace API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<DataContext>(options =>
-            {
-                options.UseSqlite(_config.GetConnectionString("DefaultConnection"));
-            });
+            services.AddApplicationServices(_config);
             services.AddControllers();
             services.AddCors();
+            services.AddIdentityServices(_config);
+            
         }
-
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
@@ -52,6 +57,8 @@ namespace API
             app.UseRouting();
             //This is a policy that allows our API recieve request from our angular app
             app.UseCors( x => x.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://localhost:4200"));
+
+            app.UseAuthentication();
 
             app.UseAuthorization();
 
